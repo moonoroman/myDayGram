@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MyApplication</string>
+    <string name="action_settings">Settings</string>
+    <string name="month_head">MONTH</string>
+    <string name="year_head">YEAR</string>
+    <item name="Tag_CONTENT" type="id"></item>
+    <item name="Tag_NOCONTENT" type="id"></item>
+</resources>
