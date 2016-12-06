@@ -23,6 +23,28 @@ public class diary implements Serializable{
         this.content = content;
     }
 
+    //获取星期
+    public int getNumofDay(){
+        switch (day){
+            case "SUN":
+                return 0;
+            case "MON":
+                return 1;
+            case "TUE":
+                return 2;
+            case "WED":
+                return 3;
+            case "THU":
+                return 4;
+            case "FRI":
+                return 5;
+            case "SAT":
+                return 6;
+            default:
+                return 7;
+        }
+    }
+
     public int getYear(){
         return year;
     }

@@ -1,13 +1,11 @@
 package com.example.roman.myapplication;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.provider.ContactsContract;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import java.util.ArrayList;
 
@@ -61,39 +59,52 @@ public class MyAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         int type = getItemViewType(position);
-        ViewHolder2 holder2 = null;
+        ViewHolder holder = null;
         if (convertView == null){
             switch (type){
                 case TYPE_NOCONTENT:
                     convertView = LayoutInflater.from(mContext).inflate(R.layout.empty_list,parent,false);
+                    convertView.setTag(R.id.Tag_NOCONTENT);
                     break;
                 case TYPE_CONTENT:
                     convertView = LayoutInflater.from(mContext).inflate(R.layout.item_list, parent, false);
-                    holder2 = new ViewHolder2();
-                    holder2.day_icon = (TextView) convertView.findViewById(R.id.day_icon);
-                    holder2.num_icon = (TextView) convertView.findViewById(R.id.num_icon);
-                    holder2.txt_content = (TextView) convertView.findViewById(R.id.txt_content);
-                    convertView.setTag(R.id.Tag_CONTENT,holder2);
+                    holder = new ViewHolder();
+                    holder.day_icon = (TextView) convertView.findViewById(R.id.day_icon);
+                    holder.num_icon = (TextView) convertView.findViewById(R.id.num_icon);
+                    holder.txt_content = (TextView) convertView.findViewById(R.id.txt_content);
+                    convertView.setTag(R.id.Tag_CONTENT,holder);
                     break;
             }
         }else{
-            if (type == TYPE_CONTENT){
-                holder2 = (ViewHolder2)convertView.getTag(R.id.Tag_CONTENT);
+            switch (type){
+                case TYPE_CONTENT:
+                    holder = (ViewHolder)convertView.getTag(R.id.Tag_CONTENT);
+                    break;
+                case TYPE_NOCONTENT:
+                    holder = (ViewHolder)convertView.getTag(R.id.Tag_NOCONTENT);
+                    break;
             }
+
         }
-        Object obj = mDiary.get(position);
-        if (type == TYPE_CONTENT){
+        if (holder!=null&&type == TYPE_CONTENT){
+            Object obj = mDiary.get(position);
             diary d = (diary) obj;
             if(d!=null){
-                holder2.day_icon.setText(d.getDay());
-                holder2.num_icon.setText(d.getNum()+"");
-                holder2.txt_content.setText(d.getContent());
+                holder.day_icon.setText(d.getDay());
+                holder.num_icon.setText(d.getNum()+"");
+                holder.txt_content.setText(d.getContent());
+                if(d.getDay().equals("SUN")){
+                    holder.num_icon.setTextColor(ContextCompat.getColor(mContext,R.color.sundaycolor));
+                }else{
+                    holder.num_icon.setTextColor(ContextCompat.getColor(mContext,R.color.textcolor));
+                }
             }
         }
+
         return convertView;
     }
 
-    private class ViewHolder2{
+    private class ViewHolder{
         TextView day_icon;
         TextView num_icon;
         TextView txt_content;

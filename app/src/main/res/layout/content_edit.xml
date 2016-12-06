@@ -21,7 +21,8 @@
         android:src="@drawable/line3"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentEnd="false" />
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"/>
 
     <EditText
         android:layout_width="match_parent"
@@ -29,7 +30,6 @@
         android:id="@+id/editText"
         android:layout_below="@+id/imageView5"
         android:layout_centerHorizontal="true"
-        android:editable="true"
         android:textColor="@color/textcolor"
         android:background="@null"
         android:layout_marginLeft="30dp"

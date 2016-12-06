@@ -1,7 +1,7 @@
 package com.example.roman.myapplication;
 
 import android.content.Intent;
-import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -11,8 +11,6 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,37 +24,44 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private ListView list_one;
     private MyAdapter mAdapter = null;
-    private ArrayList<Object> mDiary = null;
-    private ImageButton btn_add = null;
+    private ArrayList<Object> mDiary = null;//日记列表
+    private ImageButton btn_add = null;//加号按钮
+    private ImageButton btn_scanner = null;//长条按钮
+    private Spinner spin1;//月份选择框
+    private Spinner spin2;//年份选择框
     private final int requestCode1 = 1;
     private final int requestCode2 = 2;
-    private Spinner spin1;
-    private Spinner spin2;
-    private int month;
+    private int month;       //当前日期时间
     private int day;
     private int week;
     private int year;
-    private int month_selected;
+    private int month_selected;     //选择的日期时间
     private int year_selected;
     private int day_selected;
     private int week_selected;
+
+    private ArrayList<diary> DiaryList = null;    //已写的日记列表
+    private monthAdapter monAdapter = null;
+    private final int TAG_MAIN = 3;//主界面的标记
+    private final int TAG_THISMONTH = 4;//当月日记浏览画面的标记
+    private int type;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Initialdate();
+        Initialdate();//初始化日期变量为当前日期
 
+        //从文件中获取
         mDiary = new ArrayList<Object>();
-        if (getDiary(year,month)==null){
+        if (getDiary(year,month+1)==null){
             refreshDiary(Initialize(mDiary),year,month);
         }
-        mDiary = getDiary(year,month);
+        mDiary = getDiary(year,month+1);
 
         list_one = (ListView)findViewById(R.id.listView);
         initView();
-
     }
 
     public void initView(){
@@ -68,12 +73,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spin2.setSelection(year-2000);
 
         btn_add = (ImageButton)findViewById(R.id.imageButton);
-        btn_add.setOnClickListener(new View.OnClickListener() {
+        btn_add.setOnClickListener(new View.OnClickListener() {    //设置加号按钮点击事件
             @Override
             public void onClick(View v) {
                 mDiary = getDiary(year,month+1);
                 year_selected = year;
-                month_selected = month+1;
+                month_selected = month;
                 day_selected = day;
                 week_selected = week;
                 Intent intent = new Intent(MainActivity.this, EditActivity.class);
@@ -84,25 +89,53 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
+        type = TAG_MAIN;
+        btn_scanner = (ImageButton)findViewById(R.id.imageButton2);
+        btn_scanner.setOnClickListener(new View.OnClickListener() {   //设置长条按钮点击事件
+            @Override
+            public void onClick(View v) {
+                if (type == TAG_MAIN){//判断当前是否为主界面
+                    ArrayList<Object> thisDiary = getDiary(year_selected,month_selected + 1);
+                    if (thisDiary == null){
+                        refreshDiary(Initialize(new ArrayList<Object>()),year_selected,month_selected + 1);
+                        thisDiary = getDiary(year_selected, month_selected + 1);
+                    }
+                    showMonthDiary(thisDiary);
+                    type = TAG_THISMONTH;
+                }else if (type == TAG_THISMONTH){//判断当前是否为当月日记浏览界面
+                    list_one.setAdapter(mAdapter);
+                    type = TAG_MAIN;
+                }
+            }
+        });
+
+        //设置列表项点击事件
         list_one.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this, EditActivity.class);
-                day_selected = position+1;
-                Calendar cal = Calendar.getInstance();
-                cal.set(year_selected,month_selected-1,day_selected);//这里的月份是从0开始算起的
-                Date dt = cal.getTime();
-                cal.setTime(dt);
-                week_selected = cal.get(Calendar.DAY_OF_WEEK)-1;
-                String s1 = getDayOfDate(week_selected)+"DAY / "+getMonthOfDate(month_selected-1)+" "
-                        +Integer.toString(day_selected)+" / "+ Integer.toString(year_selected);
-                intent.putExtra("date",s1);
-                if (mDiary.get(position) instanceof diary){
-                    intent.putExtra("content",((diary) mDiary.get(position)).getContent());
-                }else {
-                    intent.putExtra("content","");
+                if (type == TAG_MAIN){
+                    Intent intent = new Intent(MainActivity.this, EditActivity.class);
+                    day_selected = position+1;
+                    year_selected = spin2.getSelectedItemPosition()+2000;
+                    month_selected = spin1.getSelectedItemPosition();
+                    Calendar cal = Calendar.getInstance();
+                    cal.set(year_selected,month_selected,day_selected);//这里的月份是从0开始算起的
+                    Date dt = cal.getTime();
+                    cal.setTime(dt);
+                    week_selected = cal.get(Calendar.DAY_OF_WEEK)-1;
+                    String s1 = getDayOfDate(week_selected)+"DAY / "+getMonthOfDate(month_selected)+" "
+                            +Integer.toString(day_selected)+" / "+ Integer.toString(year_selected);
+                    intent.putExtra("date",s1);
+                    if (mDiary.get(position) instanceof diary){
+                        System.out.print(mDiary);
+                        intent.putExtra("content",((diary) mDiary.get(position)).getContent());
+                    }else {
+                        intent.putExtra("content","");
+                    }
+                    startActivityForResult(intent,requestCode2);
+                }else if (type == TAG_THISMONTH){
+                    return;
                 }
-                startActivityForResult(intent,requestCode2);
             }
         });
     }
@@ -111,24 +144,32 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemSelected(AdapterView<?>parent,View view,int position,long id){
         switch (parent.getId()){
             case R.id.spinner1:
-                month_selected = position+1;
-                mDiary = getDiary(year_selected,month_selected);
+                month_selected = position;
+                mDiary = getDiary(year_selected,month_selected+1);
                 if (mDiary==null){
-                    refreshDiary(Initialize(new ArrayList<Object>()),year_selected,month_selected);
-                    mDiary = getDiary(year_selected,month_selected);
+                    refreshDiary(Initialize(new ArrayList<Object>()),year_selected,month_selected+1);
+                    mDiary = getDiary(year_selected,month_selected+1);
                 }
                 mAdapter = new MyAdapter(mDiary,MainActivity.this);
-                list_one.setAdapter(mAdapter);
+                if(type == TAG_MAIN) {
+                    list_one.setAdapter(mAdapter);
+                }else if(type == TAG_THISMONTH) {
+                    showMonthDiary(mDiary);
+                }
                 break;
             case R.id.spinner2:
                 year_selected = 2000+position;
-                mDiary = getDiary(year_selected,month_selected);
+                mDiary = getDiary(year_selected,month_selected+1);
                 if (mDiary==null){
-                    refreshDiary(Initialize(new ArrayList<Object>()),year_selected,month_selected);
-                    mDiary = getDiary(year_selected,month_selected);
+                    refreshDiary(Initialize(new ArrayList<Object>()),year_selected,month_selected+1);
+                    mDiary = getDiary(year_selected,month_selected+1);
                 }
                 mAdapter = new MyAdapter(mDiary,MainActivity.this);
-                list_one.setAdapter(mAdapter);
+                if(type == TAG_MAIN) {
+                    list_one.setAdapter(mAdapter);
+                }else if(type == TAG_THISMONTH) {
+                    showMonthDiary(mDiary);
+                }
                 break;
         }
     }
@@ -136,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onNothingSelected(AdapterView<?> parent) {}
 
+    //初始化日记列表
     private ArrayList<Object> Initialize(ArrayList<Object> mDiary){
         for(int i=0;i<31;i++){
             mDiary.add(new noDiary());
@@ -181,6 +223,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return date;
     }
 
+    //显示当月日记界面
+    public void showMonthDiary(ArrayList<Object> mDiary){
+        DiaryList = new ArrayList<diary>();
+        for(int i=0;i<mDiary.size();i++){
+            Object obj = mDiary.get(i);
+            if (obj!=null && obj instanceof diary){
+                DiaryList.add((diary)obj);
+            }
+        }
+        monAdapter = new monthAdapter(DiaryList,MainActivity.this);
+        list_one.setAdapter(monAdapter);
+    }
+
     /**
      * 接收当前Activity跳转后，目标Activity关闭后的回传值
      */
@@ -194,17 +249,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 diary d = new diary();
                 d.setYear(year_selected);
-                d.setMonth(month_selected);
+                d.setMonth(month_selected+1);
                 d.setContent(rc);
                 d.setNum(day_selected);
                 d.setDay(getDayOfDate(week_selected).substring(0,3));
+
                 mDiary.set(day_selected-1,d);
                 refreshDiary(mDiary,d.getYear(),d.getMonth());
                 mAdapter = new MyAdapter(mDiary,MainActivity.this);
-                list_one.setAdapter(mAdapter);
 
-                if (year_selected!=year||month_selected!=month+1){
-                    spin1.setSelection(month_selected-1);
+                if(type == TAG_MAIN) {
+                    list_one.setAdapter(mAdapter);
+                }else if(type == TAG_THISMONTH) {
+                    showMonthDiary(mDiary);
+                }
+                if (year!=spin2.getSelectedItemPosition()||month!=spin1.getSelectedItemPosition()){
+                    spin1.setSelection(month_selected);
                     spin2.setSelection(year_selected-2000);
                 }
                 break;
@@ -214,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    //更新本地数据
     private void refreshDiary(ArrayList<Object> obj,int key1,int key2){
         for (int i=2000;i<=year;i++){
             if (key1 == i){
@@ -226,6 +287,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
     }
+
+    //获取本地数据
     private ArrayList<Object> getDiary(int key1,int key2){
         ArrayList<Object> obj = null;
         for (int i=2000;i<=year;i++){
@@ -301,26 +364,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
         //读取产生异常，返回null
         return null;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }
