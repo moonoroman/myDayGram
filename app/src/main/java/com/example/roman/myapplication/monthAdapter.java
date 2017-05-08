@@ -13,21 +13,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import MyDate.Dateformat;
 
 /**
  * Created by Roman on 2016/12/6.
  */
 public class monthAdapter extends BaseAdapter {
     private Context mContext;
-    private ArrayList<diary> monDiary = null;
+    private List<diary> monDiary = null;
 
     public monthAdapter(){}
 
-    public monthAdapter(ArrayList<diary> monDiary, Context mContext){
+    public monthAdapter(List<diary> monDiary, Context mContext){
         this.mContext = mContext;
         this.monDiary = monDiary;
     }
@@ -58,8 +60,8 @@ public class monthAdapter extends BaseAdapter {
         }else{
             holeder = (ViewHolder)convertView.getTag();
         }
-        String s = Integer.toString(monDiary.get(position).getNum()) + " " +
-                getDayOfDate(monDiary.get(position).getNumofDay()) + "DAY / " +
+        String s = Integer.toString(monDiary.get(position).getDate().getDay()) + " " +
+                Dateformat.getDayOfWeek(monDiary.get(position).getDate()) + "DAY / " +
                 monDiary.get(position).getContent();
         holeder.txt.setText(s);
         Pattern pattern = Pattern.compile("(\\d+\\D*)/([\\s\\S]*)");
@@ -67,7 +69,7 @@ public class monthAdapter extends BaseAdapter {
         if (m.find()){
             SpannableStringBuilder style = new SpannableStringBuilder(s);
             style.setSpan(new StyleSpan(Typeface.BOLD),0, m.group(1).length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            if(monDiary.get(position).getNumofDay()==0) {
+            if(Dateformat.getDayOfWeek(monDiary.get(position).getDate()).equals("SUN")) {
                 style.setSpan(new ForegroundColorSpan(ContextCompat.getColor(mContext, R.color.sundaycolor)),
                         0, m.group(1).length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);     //设置指定位置文字的颜色
             }
@@ -80,9 +82,7 @@ public class monthAdapter extends BaseAdapter {
         TextView txt;
     }
 
-    //获取星期
-    private String getDayOfDate(int week){
-        String[] weekDays = {"SUN","MON","TUES","WEDENS","THURS","FRI","SATUR"};
-        return weekDays[week];
+    public void setDiaries(List<diary> diaries){
+        monDiary = diaries;
     }
 }

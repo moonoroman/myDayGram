@@ -1,6 +1,8 @@
 package com.example.roman.myapplication;
 
 import java.io.Serializable;
+import java.util.UUID;
+import MyDate.Date;
 
 /**
  * Created by Roman on 2016/9/20.
@@ -9,79 +11,43 @@ public class diary implements Serializable{
 
     private static final long serialVersionUID = 1L;
 
-    private int year;
-    private int month;
-    private String day;
-    private int num;
-    private String content;
+    private UUID mID;
+    private Date mDate;
+    private String mContent;
 
-    public diary() {}
-
-    public diary(int year,int month,String day, int num, String content){
-        this.day = day;
-        this.num = num;
-        this.content = content;
+    public diary() {
+        this(UUID.randomUUID());
     }
 
-    //获取星期
-    public int getNumofDay(){
-        switch (day){
-            case "SUN":
-                return 0;
-            case "MON":
-                return 1;
-            case "TUE":
-                return 2;
-            case "WED":
-                return 3;
-            case "THU":
-                return 4;
-            case "FRI":
-                return 5;
-            case "SAT":
-                return 6;
-            default:
-                return 7;
-        }
+    public diary(UUID id){
+        mID = id;
+        mDate = new Date();
+        mContent = null;
     }
 
-    public int getYear(){
-        return year;
+    public UUID getID() {
+        return mID;
     }
 
-    public int getMonth(){
-        return month;
+    public Date getDate() {
+        return mDate;
     }
 
-    public String getDay(){
-        return day;
-    }
-
-    public int getNum(){
-        return num;
+    public void setDate(int year,int month,int day) {
+        mDate.setYear(year);
+        mDate.setMonth(month);
+        mDate.setDay(day);
     }
 
     public String getContent(){
-        return content;
-    }
-
-    public void setYear(int year){
-        this.year = year;
-    }
-
-    public void setMonth(int month){
-        this.month = month;
-    }
-
-    public void setDay(String day){
-        this.day = day;
-    }
-
-    public void  setNum(int num){
-        this.num = num;
+        return mContent;
     }
 
     public void setContent(String content){
-        this.content = content;
+        mContent = content;
+    }
+
+    public boolean isEmpty(){
+        return (mContent==null);
     }
 }

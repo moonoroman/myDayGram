@@ -7,7 +7,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-import java.util.ArrayList;
+
+import java.util.List;
+
+import MyDate.Dateformat;
 
 /**
  * Created by Roman on 2016/9/20.
@@ -16,18 +19,18 @@ public class MyAdapter extends BaseAdapter{
     private static final int TYPE_CONTENT = 0;
     private static final int TYPE_NOCONTENT = 1;
     private Context mContext;
-    private ArrayList<Object> mDiary = null;
+    private List<diary> mDiaries;
 
     public MyAdapter(){}
 
-    public MyAdapter(ArrayList<Object> mDiary,Context mContext){
+    public MyAdapter(List<diary> diaries, Context mContext){
         this.mContext = mContext;
-        this.mDiary = mDiary;
+        mDiaries = diaries;
     }
 
     @Override
     public int getCount(){
-        return mDiary.size();
+        return mDiaries.size();
     }
 
     @Override
@@ -42,12 +45,10 @@ public class MyAdapter extends BaseAdapter{
 
     @Override
     public int getItemViewType(int position){
-        if (mDiary.get(position) instanceof diary){
-            return TYPE_CONTENT;
-        }else if (mDiary.get(position) instanceof noDiary){
+        if (mDiaries.get(position).getContent()==null){
             return TYPE_NOCONTENT;
         }else {
-            return super.getItemViewType(position);
+            return TYPE_CONTENT;
         }
     }
 
@@ -87,13 +88,13 @@ public class MyAdapter extends BaseAdapter{
 
         }
         if (holder!=null&&type == TYPE_CONTENT){
-            Object obj = mDiary.get(position);
+            Object obj = mDiaries.get(position);
             diary d = (diary) obj;
             if(d!=null){
-                holder.day_icon.setText(d.getDay());
-                holder.num_icon.setText(d.getNum()+"");
+                holder.day_icon.setText(Dateformat.getDayOfWeek(d.getDate()));
+                holder.num_icon.setText(d.getDate().getDay()+"");
                 holder.txt_content.setText(d.getContent());
-                if(d.getDay().equals("SUN")){
+                if(Dateformat.getDayOfWeek(d.getDate()).equals("SUN")){
                     holder.num_icon.setTextColor(ContextCompat.getColor(mContext,R.color.sundaycolor));
                 }else{
                     holder.num_icon.setTextColor(ContextCompat.getColor(mContext,R.color.textcolor));
@@ -110,11 +111,7 @@ public class MyAdapter extends BaseAdapter{
         TextView txt_content;
     }
 
-    public void add(diary data) {
-        if (mDiary == null) {
-            mDiary = new ArrayList<>();
-        }
-        mDiary.add(data);
-        notifyDataSetChanged();
+    public void setDiaries(List<diary> diaries){
+        mDiaries = diaries;
     }
 }

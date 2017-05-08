@@ -52,7 +52,8 @@
             android:layout_centerVertical="true"
             android:src="@drawable/line2"
             android:layout_alignParentRight="false"
-            android:layout_toEndOf="@id/spinner1" />
+            android:layout_toEndOf="@id/spinner1"
+            android:layout_alignParentStart="false" />
 
         <Spinner
             android:layout_width="50dp"
@@ -60,7 +61,6 @@
             android:id="@+id/spinner2"
             android:layout_centerVertical="true"
             android:layout_toRightOf="@+id/imageView2"
-            android:entries="@array/years"
             android:spinnerMode="dialog"
             android:prompt="@string/year_head"
             android:focusable="false"
